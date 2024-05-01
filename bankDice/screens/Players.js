@@ -52,7 +52,7 @@ const Players = ({navigation}) => {
                     style={styles.roundButton}
                     onPress={() => {
                         if(text.trim()){
-                            setPlayers([...players, { name: text , points: 0, banked: false }]);
+                            setPlayers([...players, { name: text.trim() , points: 0, banked: false }]);
                             onChangeText('');
                         };
                     }}
