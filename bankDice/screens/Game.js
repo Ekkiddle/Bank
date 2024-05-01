@@ -173,8 +173,8 @@ const Game = ({route, navigation }) => {
         setScore(0);
         
         setRound(round+1);
-        if(round > rounds){
-            //end game...
+        if(round >= rounds){
+            navigation.navigate("Final", {list: players})
         }
         ind = (ind + 1)%playerNo;
         checkBanked();

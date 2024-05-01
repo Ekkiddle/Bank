@@ -2,6 +2,7 @@ import * as React from 'react';
 import Start from './screens/Start';
 import Players from './screens/Players';
 import Game from './screens/Game';
+import Final from './screens/Final';
 import {NavigationContainer} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -24,6 +25,11 @@ export default function App() {
           <Stack.Screen
             name="Game"
             component={Game}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Final"
+            component={Final}
             options={{ headerShown: false }}
           />
       </Stack.Navigator>
