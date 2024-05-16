@@ -5,31 +5,34 @@ import Carousel from 'react-native-reanimated-carousel';
 // index of player
 let ind = 0;
 
-const StretchButton = ({onPress, title, disabled}) => {
-    let color = disabled?  '#9c9c9c':'#147EFB'
+const StretchButton = ({onPress, title, disabled, color, borderColor}) => {
+    let color1 = disabled?  '#8E6F00':color;
+    if(!color1){
+        color1 = '#F9C300'
+    }
     return(
         <TouchableOpacity
             style={{justifyContent:'center',
                 alignItems:'center',
-                backgroundColor: color,
+                backgroundColor: color1,
                 flexGrow:1,
-                margin:1,
-                borderRadius:5, }}
+                margin:5,
+                borderRadius:20, }}
             onPress={onPress}
             disabled={disabled}
         >
-            <Text style={{ color:'white' }}>{title}</Text>
+            <Text style={{ color:'#203E11', fontSize:20 }}>{title}</Text>
         </TouchableOpacity>
     );
 };
 
-const Item = ({index, players, num, roll, player, score, bank}) => {
+const Item = ({index, players, update, num, roll, player, score, bank}) => {
     let content;
     if(index){
         content = (<FlatList
             data={players}
             renderItem={({item, index}) => <Player players={players} index={index} score={score} onPress={bank}
-            extraData={num}
+            extraData={update}
             />}
         />);
     }
@@ -45,7 +48,7 @@ const Item = ({index, players, num, roll, player, score, bank}) => {
                     <StretchButton title={6} onPress={()=>{roll(6)}}/>
                 </View>
                 <View style={{ flex:1, flexDirection:'row', width:'100%' }}>
-                    <StretchButton title={7} onPress={()=>{roll(7)}}/>
+                    <StretchButton title={7} color={'#AE5E00'} onPress={()=>{roll(7)}}/>
                 </View>
                 <View style={{ flex:1, flexDirection:'row', width:'100%' }}>
                     <StretchButton title={8} onPress={()=>{roll(8)}}/>
@@ -91,9 +94,11 @@ const Item = ({index, players, num, roll, player, score, bank}) => {
         </View>
         );
     }
+    let color1 = index? '#6E5600':'#F9C300'
+    let color2 = index? '#F9C300':'#6E5600'
     return (
-        <View style={{ padding:10, height:'100%', width:'100%' }}>
-            <Text> {player}'s turn to roll </Text>
+        <View style={{ padding:10, height:'100%', width:'100%', backgroundColor:'#274A17' }}>
+            <Text style={{ color:'#F9C300', width:'100%', textAlign:'center', padding:5 }}> {player}'s turn to roll </Text>
             {content}
         </View>
     );
@@ -109,18 +114,23 @@ const Player = ({players, index, score, onPress}) => (
         justifyContent:'space-between',
         alignItems:'center',
         marginVertical:5,
-        backgroundColor: players[index].banked? '#147EFB': '#fff'
+        backgroundColor: players[index].banked? '#F9C300': '#396922',
+        borderColor: players[index].banked? '#FFD230':'#396922',
+        borderRadius:20,
     }}>
         <View style={{flex:1, flexDirection:'row', alignItems:'center'}}>
-        <Text style={{ width:50, padding:5 }}>
-            {players[index].points}
-        </Text>
-        <Text style={{
-        fontSize: 16,
-        margin: 10
-        }}>{players[index].name}</Text>
+            <Text style={{ fontSize:20, width:75, padding:5, color: players[index].banked? '#203E11':'#F9C300', }}>
+                {players[index].points}
+            </Text>
+            <Text style={{
+                fontSize: 16,
+                margin: 10, color: players[index].banked? '#203E11':'#F9C300',
+                }}>{players[index].name}
+            </Text>
         </View>
-        <Button title="BANK" onPress={()=>onPress(players[index])} disabled={players[index].banked} />
+        <TouchableOpacity onPress={()=>onPress(players[index])} disabled={players[index].banked} 
+            style={{ marginHorizontal:6, backgroundColor:'#F9C300', padding:8, paddingHorizontal:15, borderRadius:20, }}>
+            <Text style={{ color: players[index].banked? '#F9C300':'#1D3910' }}>BANK</Text></TouchableOpacity>
     </View>
 );
 
@@ -133,6 +143,8 @@ const Game = ({route, navigation }) => {
     const [score, setScore] = React.useState(0);
     // The current number of rolls
     const [rollNumber, setRoll] = React.useState(0);
+    // generic value used to update scores. Useless
+    const [updateScore, setUpdate] = React.useState(0);
     // current player
     const [currPlayer, setCurrPlayer] = React.useState(route.params.list[0]);
     // current round
@@ -199,17 +211,18 @@ const Game = ({route, navigation }) => {
             player.points += score;
             let temp = players.sort((a, b) => {
                 return b.points - a.points;})
-            setPlayers(temp)
-            setRoll(rollNumber+1);
+            setPlayers(temp);
+            setUpdate(updateScore + 1);
             checkBanked();
         };
     }
 
     return (
-        <View style={{ justifyContent:'center', alignItems:'center', flex:1 , padding:10, paddingVertical: 30}}>
-            <View style={{ justifyContent:'center', alignItems:'center', height:'35%', width:'100%', borderWidth:1}}>
-                <Text>Round {round}/{rounds}</Text>
-                <Text style={{ fontSize:100}}> {score} </Text>
+        <View style={{ justifyContent:'center', alignItems:'center', flex:1 , paddingHorizontal:10, paddingTop: 30, backgroundColor:'#203E11'}}>
+            <View style={{ justifyContent:'center', alignItems:'center', height:'35%', width:'100%',}}>
+                <Text style={{ fontSize:20, color:'#F9C300', marginTop:20}}>Round {round}/{rounds}</Text>
+                <Text style={{ fontSize:100, color:'#F9C300', marginTop:'auto'}}> {score} </Text>
+                <Text style={{ fontSize:16, color:'#F9C300', width:'100%', marginTop:'auto'}}> Roll count: {rollNumber} </Text>
             </View>
             <View style={{ height:'65%' }}>
                 <Carousel
@@ -222,6 +235,7 @@ const Game = ({route, navigation }) => {
                         <Item index={index} 
                             players={players} 
                             num={rollNumber} 
+                            update={updateScore}
                             roll={rollDie} 
                             player={currPlayer.name} 
                             score={score}
