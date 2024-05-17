@@ -53,16 +53,16 @@ const Final = ({route, navigation}) => {
                         <Player player={item} index={index} />}
                     />
                 </View>
-                <TouchableOpacity style={{ backgroundColor:'#AE8800', width:'100%', justifyContent:'center', alignItems:'center',
-                    borderRadius:50, height:50, borderWidth:2, borderColor:'#F9C300', marginVertical:5 }}
+                <TouchableOpacity style={{ backgroundColor:'#F9C300', width:'100%', justifyContent:'center', alignItems:'center',
+                    borderRadius:50, height:50, borderWidth:2, borderColor:'#FFD230', marginVertical:5 }}
                     onPress={() => navigation.navigate("Players")}
                 >
                     <Text style={{ fontSize:26, color:'#203E11'}}>
                         Play Again
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ backgroundColor:'#AE8800', width:'100%', justifyContent:'center', alignItems:'center',
-                    borderRadius:50, height:50, borderWidth:2, borderColor:'#F9C300', marginVertical:5 }}
+                <TouchableOpacity style={{ backgroundColor:'#F9C300', width:'100%', justifyContent:'center', alignItems:'center',
+                    borderRadius:50, height:50, borderWidth:2, borderColor:'#FFD230', marginVertical:5 }}
                     onPress={() => navigation.navigate("Start")}
                 >
                     <Text style={{ fontSize:26, color:'#203E11'}}>
