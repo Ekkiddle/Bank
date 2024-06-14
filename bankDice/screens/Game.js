@@ -1,30 +1,16 @@
 import React from 'react';
 import {Text, View, Button, FlatList, Dimensions, TouchableOpacity} from 'react-native';
+import StretchButton from '../components/buttons'
 import Carousel from 'react-native-reanimated-carousel';
+import { FontAwesome } from '@expo/vector-icons';
 
 // index of player
 let ind = 0;
-
-const StretchButton = ({onPress, title, disabled, color, borderColor}) => {
-    let color1 = disabled?  '#8E6F00':color;
-    if(!color1){
-        color1 = '#F9C300'
-    }
-    return(
-        <TouchableOpacity
-            style={{justifyContent:'center',
-                alignItems:'center',
-                backgroundColor: color1,
-                flexGrow:1,
-                margin:5,
-                borderRadius:20, }}
-            onPress={onPress}
-            disabled={disabled}
-        >
-            <Text style={{ color:'#203E11', fontSize:20 }}>{title}</Text>
-        </TouchableOpacity>
-    );
-};
+// last player
+let lastPlayer = 0;
+/* Undo stack in form:
+    (action [bank = 0, roll = 1], player who did action, points before action, turn before action, round before action) */
+    let undoStack = [];
 
 const Item = ({index, players, update, num, roll, player, score, bank}) => {
     let content;
@@ -155,7 +141,16 @@ const Game = ({route, navigation }) => {
     // number of players
     const playerNo = players.length;
 
+    // reset player scores (if for some reason they weren't)
+    if(round==1 && rollNumber==0){
+    for(let i = 0; i<players.length; i++){
+        players[i].points = 0;
+        players[i].banked = false;
+    }};
+
     const rollDie = (roll) => {
+        let temp = { action:1, player:route.params.list[ind], score: score, turn:ind, roll:rollNumber, round: round}
+        undoStack.push(temp);
         if(roll == 7){
             if(rollNumber < 3){
                 setScore(score+70);
@@ -173,6 +168,7 @@ const Game = ({route, navigation }) => {
             setScore(score + roll);
         }
         setRoll(rollNumber + 1);
+        lastPlayer = ind;
         ind = (ind + 1)%playerNo;
         checkBanked();
     };
@@ -188,7 +184,7 @@ const Game = ({route, navigation }) => {
         if(round >= rounds){
             navigation.navigate("Final", {list: players})
         }
-        ind = (ind + 1)%playerNo;
+        ind = (lastPlayer + 1)%playerNo;
         checkBanked();
     };
 
@@ -207,6 +203,8 @@ const Game = ({route, navigation }) => {
 
     const bank = (player) => {
         if(rollNumber>=3){
+            let temp1 = {action:0, player:player, score:score, turn:ind, roll:rollNumber, round:round}
+            undoStack.push(temp1);
             player.banked = true;
             player.points += score;
             let temp = players.sort((a, b) => {
@@ -217,12 +215,45 @@ const Game = ({route, navigation }) => {
         };
     }
 
+    const undo = () => {
+        console.log(undoStack);
+        if(undoStack.length != 0){
+            let action = undoStack.pop()
+            // bank action
+            if(action.action == 0){
+                // undo add score
+                action.player.points -= action.score;
+                action.player.banked = false;
+                let temp = players.sort((a, b) => {
+                    return b.points - a.points;})
+                setPlayers(temp);
+                setUpdate(updateScore + 1);
+            }
+            // roll action
+            else{
+                // undo add to score
+                setScore(action.score);
+            }
+            // go back to previous turn and round
+            // undo roll number
+            setRoll(action.roll);
+            ind = action.turn;
+            setCurrPlayer(route.params.list[ind]);
+            setRound(action.round);
+        }
+    };
+
     return (
         <View style={{ justifyContent:'center', alignItems:'center', flex:1 , paddingHorizontal:10, paddingTop: 30, backgroundColor:'#203E11'}}>
             <View style={{ justifyContent:'center', alignItems:'center', height:'35%', width:'100%',}}>
                 <Text style={{ fontSize:20, color:'#F9C300', marginTop:20}}>Round {round}/{rounds}</Text>
                 <Text style={{ fontSize:100, color:'#F9C300', marginTop:'auto'}}> {score} </Text>
-                <Text style={{ fontSize:16, color:'#F9C300', width:'100%', marginTop:'auto'}}> Roll count: {rollNumber} </Text>
+                <View style={{ flex:1, justifyContent:'space-between', alignItems:'center', flexDirection:'row', padding:5, paddingHorizontal:15}}>
+                    <Text style={{ fontSize:16, color:'#F9C300', width:'100%', marginTop:'auto'}}> Roll count: {rollNumber} </Text>
+                    <TouchableOpacity style={{ marginTop:'auto', }} onPress={undo}>
+                        <FontAwesome name="repeat" size={24} color="#F9C300" />
+                    </TouchableOpacity>
+                </View>
             </View>
             <View style={{ height:'65%' }}>
                 <Carousel
